@@ -99,7 +99,7 @@ fi
 distro_codename=$(lsb_release --codename --short)
 distro_id=$(lsb_release --id --short)
 # TODO(crbug.com/1199405): Remove 14.04 (trusty) and 16.04 (xenial).
-supported_codenames="(trusty|xenial|bionic|disco|eoan|focal|groovy)"
+supported_codenames="(trusty|xenial|bionic|disco|eoan|focal|groovy|hirsute)"
 supported_ids="(Debian)"
 if [ 0 -eq "${do_unsupported-0}" ] && [ 0 -eq "${do_quick_check-0}" ] ; then
   if [[ ! $distro_codename =~ $supported_codenames &&
@@ -110,6 +110,7 @@ if [ 0 -eq "${do_unsupported-0}" ] && [ 0 -eq "${do_quick_check-0}" ] ; then
       "\tUbuntu 18.04 LTS (bionic with EoL April 2028)\n" \
       "\tUbuntu 20.04 LTS (focal with Eol April 2030)\n" \
       "\tUbuntu 20.10 (groovy)\n" \
+      "\tUbuntu 21.04 (hirsute)\n" \
       "\tDebian 10 (buster) or later" >&2
     exit 1
   fi
@@ -398,6 +399,13 @@ case $distro_codename in
                 g++-10-arm-linux-gnueabihf
                 gcc-10-arm-linux-gnueabihf"
     ;;
+  hirsute)
+    arm_list+=" g++-11-multilib-arm-linux-gnueabihf
+                gcc-11-multilib-arm-linux-gnueabihf
+                gcc-arm-linux-gnueabihf
+                g++-11-arm-linux-gnueabihf
+                gcc-11-arm-linux-gnueabihf"
+    ;;
 esac
 
 # Packages to build NaCl, its toolchains, and its ports.
@@ -482,7 +490,9 @@ fi
 if package_exists libav-tools; then
   dev_list="${dev_list} libav-tools"
 fi
-if package_exists php7.4-cgi; then
+if package_exists php8.0-cgi; then
+  dev_list="${dev_list} php8.0-cgi libapache2-mod-php8.0"
+elif package_exists php7.3-cgi; then
   dev_list="${dev_list} php7.4-cgi libapache2-mod-php7.4"
 elif package_exists php7.3-cgi; then
   dev_list="${dev_list} php7.3-cgi libapache2-mod-php7.3"
@@ -589,7 +599,10 @@ if [ "$do_inst_syms" = "1" ]; then
 
   # Debugging symbols packages not following common naming scheme
   if [ "$(dbg_package_name libstdc++6)" == "" ]; then
-    if package_exists libstdc++6-8-dbg; then
+    
+    if package_exists libstdc++6-11-dbg; then
+      dbg_list="${dbg_list} libstdc++6-8-dbg"
+    elif package_exists libstdc++6-8-dbg; then
       dbg_list="${dbg_list} libstdc++6-8-dbg"
     elif package_exists libstdc++6-7-dbg; then
       dbg_list="${dbg_list} libstdc++6-7-dbg"
